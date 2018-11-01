@@ -1,7 +1,10 @@
 package ca.bcit.project.safewalk;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -13,6 +16,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 public class ContactActivity extends AppCompatActivity {
+
+    private static final int MY_PERMISSIONS_REQUEST_CALL_PHONE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +41,8 @@ public class ContactActivity extends AppCompatActivity {
                 //Intent intent = new Intent(getApplicationContext(), ContactDetailsActivity.class);
                 //intent.putExtra("index", (int)id);
                 //startActivity(intent);
-                String phone = Contact.phoneCall[(int)id].getPhoneNumber();
+
+                String phone = Contact.phoneCall[(int) id].getPhoneNumber();
                 call(phone);
             }
         });
@@ -69,8 +75,16 @@ public class ContactActivity extends AppCompatActivity {
     }
 
     private void call(String phone) {
-        Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + phone));
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        Intent intent=new Intent(Intent.ACTION_CALL,Uri.parse("tel:"+phone));
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.CALL_PHONE) !=
+                PackageManager.PERMISSION_GRANTED) {
+            // Permission not yet granted. Use requestPermissions().
+            //Log.d(TAG, getString(R.string.permission_not_granted));
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CALL_PHONE},
+                    MY_PERMISSIONS_REQUEST_CALL_PHONE);
+        }
         startActivity(intent);
     }
 }
