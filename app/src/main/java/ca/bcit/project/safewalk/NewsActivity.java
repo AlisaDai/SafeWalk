@@ -112,12 +112,12 @@ public class NewsActivity extends AppCompatActivity {
                 if(tokens[3] != "" && tokens[3] != null){
                     news.setDay(Integer.parseInt(tokens[3]));
                 }
-                if(tokens[4].isEmpty() && tokens[4] != "" && tokens[4] != null){
-                    news.setHour(Integer.parseInt(tokens[4]));
+                if(!tokens[4].isEmpty() && tokens[4] != "" && tokens[4] != null){
+                    news.setHour(tokens[4]);
                 }
                 Log.d("Tokens4", "Tokens 4: " + tokens[4]);
-                if(tokens[5] != "" && tokens[5] != null){
-                    news.setMinute(Integer.parseInt(tokens[5]));
+                if(!tokens[5].isEmpty() && tokens[5] != "" && tokens[5] != null){
+                    news.setMinute(tokens[5]);
                 }
                 if(tokens[6] != "" && tokens[6] != null){
                     news.setBlock(tokens[6]);

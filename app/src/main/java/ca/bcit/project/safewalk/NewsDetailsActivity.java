@@ -19,7 +19,10 @@ public class NewsDetailsActivity extends AppCompatActivity {
                 + currentNews.getBlock() + " via "
                 + currentNews.getNeighbourhood() + "\n("
                 + currentNews.getX() + ", " + currentNews.getY() + ")\n In "
-                + currentNews.getMonth() + " " + currentNews.getDay() + ", " + currentNews.getYear()
-                + currentNews.getHour() + " : " + currentNews.getMinute());
+                + currentNews.getMonth() + " " + currentNews.getDay() + ", " + currentNews.getYear());
+        if(currentNews.getHour() != "00" || currentNews.getMinute() != "00"){
+            tv.setText(tv.getText() + ", "
+                    + currentNews.getHour() + " : " + currentNews.getMinute());
+        }
     }
 }

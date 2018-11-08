@@ -7,8 +7,8 @@ public class News implements Serializable {
     private int year;
     private int month;
     private int day;
-    private int hour;
-    private int minute;
+    private String hour;
+    private String minute;
     private String Block;
     private String Neighbourhood;
     private float x;
@@ -19,15 +19,15 @@ public class News implements Serializable {
         year = 2018;
         month = 1;
         day = 1;
-        hour = 0;
-        minute = 0;
+        hour = "00";
+        minute = "00";
         Block = "";
         Neighbourhood = "";
         x = 0;
         y = 0;
     }
 
-    public News(String type, int year, int month, int day, int hour, int minute, String block, String neighbourhood, float x, float y) {
+    public News(String type, int year, int month, int day, String hour, String minute, String block, String neighbourhood, float x, float y) {
         this.type = type;
         this.year = year;
         this.month = month;
@@ -56,11 +56,11 @@ public class News implements Serializable {
         this.day = day;
     }
 
-    public void setHour(int hour) {
+    public void setHour(String hour) {
         this.hour = hour;
     }
 
-    public void setMinute(int minute) {
+    public void setMinute(String minute) {
         this.minute = minute;
     }
 
@@ -96,11 +96,11 @@ public class News implements Serializable {
         return day;
     }
 
-    public int getHour() {
+    public String getHour() {
         return hour;
     }
 
-    public int getMinute() {
+    public String getMinute() {
         return minute;
     }
 
