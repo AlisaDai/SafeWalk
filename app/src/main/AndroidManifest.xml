@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ca.bcit.project.safewalk">
+
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -19,6 +21,7 @@
         </activity>
         <activity android:name=".NewsActivity" />
         <activity android:name=".ContactActivity" />
+        <activity android:name=".NewsDetailsActivity"></activity>
     </application>
 
 </manifest>
