@@ -2,11 +2,12 @@
 <com.mapbox.mapboxsdk.maps.MapView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:mapbox="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mapView"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    mapbox:mapbox_cameraTargetLat="49.25"
-    mapbox:mapbox_cameraTargetLng="-123"
+    mapbox:mapbox_cameraTargetLat="49.205014118803064"
+    mapbox:mapbox_cameraTargetLng="-122.91642947805181"
     mapbox:mapbox_styleUrl="mapbox://styles/mapbox/streets-v10"
     mapbox:mapbox_cameraZoom="12"
     />
