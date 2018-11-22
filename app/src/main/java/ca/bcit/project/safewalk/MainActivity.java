@@ -7,12 +7,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineListener;
@@ -69,37 +67,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private DirectionsRoute currentRoute;
     private static final String TAG = "MainActivity";
     private static final boolean SIMULATE_ROUTE = true;
+    private static final double DEVIATE_TOLERANCE = 90d;
 
-//    private DirectionsRoute currentRoute;
-//    private MapboxDirections  client;
+//  private DirectionsRoute currentRoute;
+//  private MapboxDirections  client;
 
     private static final int CALL_REQUEST_CODE = 101;
-
-    private LatLng locationOne;
-
-//    private class getJSONObject extends AsyncTask<Void, Void, Void>{
-//
-//        @Override
-//        protected void onPreExecute() {
-//            super.onPreExecute();
-//        }
-//
-//        @Override
-//        protected Void doInBackground(Void... voids) {
-//
-//
-//            return null;
-//        }
-//    }
-
-//    public void getJSON(){
-//
-//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         //MapBox access token
         Mapbox.getInstance(this,getString(R.string.access_token));
 
@@ -129,7 +106,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu. This adds items to the app bar.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-
         return true;
     }
 
@@ -156,30 +132,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         map =  mapboxMap;
         map.addOnMapClickListener(this);
         enableLocation();
-
-//        locationOne = new LatLng(49.226658611220394,-122.91146714723995);
-//        LatLng locationTwo = new LatLng(49.22672314728445,-122.91134223442705);
-//        LatLng locationThree = new LatLng(49.18635725217431,-122.9383444449217);
-//
-//
-//        mapboxMap.addMarker(new MarkerOptions().position(locationOne));
-//        mapboxMap.addMarker(new MarkerOptions().position(locationTwo));
-//        mapboxMap.addMarker(new MarkerOptions().position(locationThree));
-//
-////        Toast.makeText(
-////                MainActivity.this,
-////                getString(R.string.tap_on_map_instruction),
-////                Toast.LENGTH_LONG
-////        ).show();
-//        LatLngBounds latLngBounds = new LatLngBounds.Builder()
-//                .include(locationOne) // Northeast
-//                .include(locationThree) // Southwest
-//                .build();
-//
-//        mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 400), 500);
-//
-//        mapboxMap.addOnMapClickListener(this);
-
     }
 
     private void enableLocation(){
@@ -249,54 +201,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         startButton.setEnabled(true);
         startButton.setBackgroundResource(R.color.mapbox_blue);
-//
-//        try {
-//            InputStream is = getAssets().open("SAFE_SCHOOL_ROUTES.json");
-//            int size = is.available();
-//            byte[] buffer = new byte[size+1];
-//
-//            is.read(buffer);
-//            is.close();
-//
-//            json = new String(buffer, "UTF-8");
-//
-//            //.setGravity(Gravity.CENTER, 0, 0)
-//
-//            JSONObject routes = new JSONObject(json);
-//            JSONArray routesFeatures = routes.getJSONArray("features");
-//
-//            for(int i = 0; i < routesFeatures.length(); i++){
-//                JSONObject route = routesFeatures.getJSONObject(i).getJSONObject("geometry");
-//                String routeName = routesFeatures.getJSONObject(i).getJSONObject("properties").getString("Route");
-//                JSONArray routeCoordinates = route.getJSONArray("coordinates");
-//
-//                //Toast.makeText(getApplicationContext(),routeCoordinates.length() + " size ", Toast.LENGTH_LONG).show();
-//
-//                for(int j = 0; j < routeCoordinates.length(); j++){
-//                    JSONArray coordinates = routeCoordinates.getJSONArray(i);
-//                    double longitutde = coordinates.getDouble(0);
-//                    double latitude = coordinates.getDouble(1);
-//
-//                    Toast.makeText(getApplicationContext(),latitude + " " + longitutde, Toast.LENGTH_LONG).show();
-//                    //LatLng tempLocation = new LatLng(latitude,longitutde);
-////                    LatLng locationFour = new LatLng(latitude,longitutde);
-//                    //mapboxMap.addMarker(new MarkerOptions().position(tempLocation));
-//
-//                }
-//                //double latitude .getJSONArray("coordinates")
-//
-//            }
-//        } catch (IOException | JSONException e) {
-//            e.printStackTrace();
-//        }
     }
 
     private void getRoute(Point origin, Point destination){
-        NavigationRoute.builder(this)
+
+        double bearing = Float.valueOf(originLocation.getBearing()).doubleValue();
+        NavigationRoute.Builder builder = NavigationRoute.builder(this)
         .accessToken(Mapbox.getAccessToken())
-        .origin(origin)
-        .destination(destination)
-        .build()
+        .origin(origin, bearing, DEVIATE_TOLERANCE)
+        .destination(destination);
+        builder.addApproaches("curb","curb");
+        builder.build()
         .getRoute(new Callback<DirectionsResponse>() {
             @Override
             public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
@@ -340,7 +255,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             setCameraPosition(location);
         }
     }
-
 
     @SuppressWarnings("MissingPermission")
     @Override
