@@ -12,6 +12,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineListener;
 import com.mapbox.android.core.location.LocationEnginePriority;
@@ -65,6 +67,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Marker destinationMarker;
     private NavigationMapRoute navigationMapRoute;
     private DirectionsRoute currentRoute;
+    //database
+    //private FirebaseDatabase database;
+    private DatabaseReference routesDatabase;
+
+
     private static final String TAG = "MainActivity";
     private static final boolean SIMULATE_ROUTE = true;
     private static final double DEVIATE_TOLERANCE = 90d;
@@ -100,6 +107,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 NavigationLauncher.startNavigation(MainActivity.this, options);
             }
         });
+
+        routesDatabase = FirebaseDatabase.getInstance().getReference("Routes");
+
     }
 
     @Override
@@ -240,6 +250,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.e(TAG, "Error:" + t.getMessage());
             }
         });
+    }
+
+
+    //Database related methods
+    private void addRoute(){
+        String name;
+        double longitude;
+        double latitude;
+
     }
 
     @SuppressWarnings("MissingPermission")
