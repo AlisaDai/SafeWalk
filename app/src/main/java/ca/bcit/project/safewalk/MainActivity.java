@@ -1,8 +1,13 @@
 package ca.bcit.project.safewalk;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -11,35 +16,51 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineListener;
 import com.mapbox.android.core.location.LocationEnginePriority;
 import com.mapbox.android.core.location.LocationEngineProvider;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
+import com.mapbox.api.geocoding.v5.models.CarmenFeature;
+import com.mapbox.geojson.Feature;
+import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
+import com.mapbox.mapboxsdk.geometry.LatLngBounds;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
 import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.mapbox.mapboxsdk.plugins.places.autocomplete.PlaceAutocomplete;
+import com.mapbox.mapboxsdk.plugins.places.autocomplete.model.PlaceOptions;
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -47,10 +68,15 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, LocationEngineListener, PermissionsListener, MapboxMap.OnMapClickListener{
 
+    //App variables
+    private PermissionsManager permissionManager;
+    private RelativeLayout loadingPanel;
+    private TextView loadingValue;
+    //Mapbox variables
     private MapView mapView;
     private MapboxMap map;
     private Button startButton;
-    private PermissionsManager permissionManager;
+    private FloatingActionButton searchFab;
     private LocationEngine locationEngine;
     private LocationLayerPlugin locationLayerPlugin;
     private Location originLocation;
@@ -59,19 +85,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Marker destinationMarker;
     private NavigationMapRoute navigationMapRoute;
     private DirectionsRoute currentRoute;
-    //database
-    //private FirebaseDatabase database;
-    private DatabaseReference routesDatabase;
+//    private String geojsonSourceLayerId = "geojsonSourceLayerId";
+//    private String symbolIconId = "symbolIconId";
 
+    //Async Task to load data from firebase
+    private FireBaseHelper loadFireBase;
+    //local data structure variables after reading from firebase
+    private Map<String, SafeRoute> safeRoutes;
+    private ArrayList<Point> wayPoints;
 
     private static final String TAG = "MainActivity";
-    private static final boolean SIMULATE_ROUTE = true;
-    private static final double DEVIATE_TOLERANCE = 90d;
+    private static final boolean SIMULATE_ROUTE = true;         //simulate movement towards destination. used for testing
+    private static final double DEVIATE_TOLERANCE = 30d;        //30 degree tolerance in off route detection
+    private static final int CALL_REQUEST_CODE = 101;           //Permission for call
+    private static final int REQUEST_CODE_AUTOCOMPLETE = 1;     //Geocoding results display request
 
-//  private DirectionsRoute currentRoute;
-//  private MapboxDirections  client;
-
-    private static final int CALL_REQUEST_CODE = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,8 +114,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mapView = findViewById(R.id.mapView);
         startButton = findViewById(R.id.startButton);
-        mapView.onCreate(savedInstanceState);
+        loadingPanel = findViewById(R.id.loadingPanel);
+        loadingValue = findViewById(R.id.loadingValue);
 
+
+        mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,9 +131,74 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        //routesDatabase = FirebaseDatabase.getInstance().getReference("Routes");
-
+        loadFireBase = new FireBaseHelper();
+        loadFireBase.execute();
+        wayPoints = new ArrayList<>();
     }
+
+    private class FireBaseHelper extends AsyncTask<Void, Integer, Map<String, SafeRoute>> {
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference safeRoutesDatabase = database.getReference(getString(R.string.safe_routes));
+        Map<String, SafeRoute> results;
+
+        @Override
+        protected void onPreExecute(){
+            results = new HashMap<>();
+        }
+        @Override
+        protected Map<String, SafeRoute> doInBackground(Void ...params) {
+            safeRoutesDatabase.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    // This method is called once with the initial value and again
+                    // whenever data at this location is updated.
+                    double lon = 0;
+                    double lat = 0;
+                    String name;
+                    results.clear();
+                    for(DataSnapshot route : dataSnapshot.getChildren()){
+                        for(DataSnapshot coord : route.child("geometry").child("coordinates").getChildren()){
+                            lon = (Double) coord.child("0").getValue();
+                            lat = (Double) coord.child("1").getValue();
+                        }
+                        name = (String) route.child("properties").child("Route").getValue();
+                        addSafeRoutes(name,lon,lat);
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    // Failed to read value
+                    Log.w(TAG, "Failed to read value.", error.toException());
+                }
+            });
+
+            return results;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            loadingValue.setText("Loading." + values[0].toString() );
+        }
+
+        @Override
+        protected void onPostExecute(Map<String, SafeRoute> results) {
+            safeRoutes = results;
+            loadingPanel.setVisibility(View.GONE);
+            loadingValue.setText(getString(R.string.loading));
+        }
+
+        //check and add safe route into map of safe routes
+        private void addSafeRoutes(String name, double lon, double lat){
+            if(!results.containsKey(name)) {
+                results.put(name, new SafeRoute(name, lon, lat));
+            }else{
+                results.get(name).addCoordinate(lon, lat);
+            }
+        }
+    }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -133,7 +229,80 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(MapboxMap mapboxMap) {
         map =  mapboxMap;
         map.addOnMapClickListener(this);
+        initSearchFab();
         enableLocation();
+
+        //Add symbol layer icon to map for future use
+//        Bitmap icon = BitmapFactory.decodeResource(
+//                MainActivity.this.getResources(), R.drawable.ic_action_search);
+//        map.addImage(symbolIconId, icon);
+
+        // Create an empty GeoJSON source using the empty feature collection
+        //setUpSource();
+
+        // Set up a new symbol layer for displaying the searched location's feature coordinates
+        //setupLayer();
+    }
+
+    private void initSearchFab(){
+        searchFab = findViewById(R.id.floatingActionButton);
+        searchFab.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                Intent intent = new PlaceAutocomplete.IntentBuilder()
+                        .accessToken(Mapbox.getAccessToken())
+                        .placeOptions(PlaceOptions.builder()
+                                .backgroundColor(Color.parseColor("#EEEEEE"))
+                                .limit(10).build(PlaceOptions.MODE_CARDS))
+                                .build(MainActivity.this);
+                startActivityForResult(intent, REQUEST_CODE_AUTOCOMPLETE);
+            }
+
+        });
+    }
+//      Used for custom symbols disabled now
+//    private void setUpSource() {
+//        GeoJsonSource geoJsonSource = new GeoJsonSource(geojsonSourceLayerId);
+//        map.addSource(geoJsonSource);
+//    }
+
+//    private void setupLayer() {
+//        SymbolLayer selectedLocationSymbolLayer = new SymbolLayer("SYMBOL_LAYER_ID", geojsonSourceLayerId);
+//        selectedLocationSymbolLayer.withProperties(PropertyFactory.iconImage(symbolIconId));
+//        map.addLayer(selectedLocationSymbolLayer);
+//    }
+
+    //End of location search result
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE_AUTOCOMPLETE) {
+
+            // Retrieve selected location's CarmenFeature
+            CarmenFeature selectedCarmenFeature = PlaceAutocomplete.getPlace(data);
+
+            // Create a new FeatureCollection and add a new Feature to it using selectedCarmenFeature above
+            FeatureCollection featureCollection = FeatureCollection.fromFeatures(
+                    new Feature[]{Feature.fromJson(selectedCarmenFeature.toJson())});
+
+            // Retrieve and update the source designated for showing a selected location's symbol layer icon
+//            GeoJsonSource source = map.getSourceAs(geojsonSourceLayerId);
+//            if (source != null) {
+//                source.setGeoJson(featureCollection);
+//            }
+            LatLng destinationLatLng = new LatLng(((Point) Objects.requireNonNull(selectedCarmenFeature.geometry())).latitude(),
+                    ((Point) Objects.requireNonNull(selectedCarmenFeature.geometry())).longitude());
+
+            onMapClick(destinationLatLng);
+
+        // demo code for only move camera to searched location disregarding user location
+//        CameraPosition newCameraPosition = new CameraPosition.Builder()
+//                    .target(new LatLng(((Point) selectedCarmenFeature.geometry()).latitude(),
+//                            ((Point) selectedCarmenFeature.geometry()).longitude()))
+//                    .zoom(14)
+//                    .build();
+//            map.animateCamera(CameraUpdateFactory.newCameraPosition(newCameraPosition), 4000);
+        }
     }
 
     private void enableLocation(){
@@ -150,6 +319,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
         //Present reasons for permissions
+
     }
 
     @Override
@@ -182,7 +352,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void initializeLocationLayer(){
         locationLayerPlugin = new LocationLayerPlugin(mapView, map, locationEngine);
         locationLayerPlugin.setLocationLayerEnabled(true);
-        locationLayerPlugin.setCameraMode(CameraMode.TRACKING);
+        locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
         locationLayerPlugin.setRenderMode(RenderMode.COMPASS);
     }
 
@@ -192,29 +362,47 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapClick(@NonNull LatLng point) {
-        if(destinationMarker != null){
-            map.removeMarker(destinationMarker);
-        }
+        routeCleanup();
+        LatLng originLatLng = new LatLng(originLocation.getLatitude(), originLocation.getLongitude());
         destinationMarker = map.addMarker(new MarkerOptions().position(point));
+
+        //move the camera to focus on start and end points
+        LatLngBounds latLngBounds = new LatLngBounds.Builder()
+                .include(originLatLng)
+                .include(point)
+                .build();
+        map.easeCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 400), 250);
 
         destinationPosition = Point.fromLngLat(point.getLongitude(), point.getLatitude());
         originPosition = Point.fromLngLat(originLocation.getLongitude(), originLocation.getLatitude());
         getRoute(originPosition,destinationPosition);
-
-        startButton.setEnabled(true);
-        startButton.setBackgroundResource(R.color.mapbox_blue);
     }
 
     private void getRoute(Point origin, Point destination){
 
         double bearing = Float.valueOf(originLocation.getBearing()).doubleValue();
+
+        for(SafeRoute sR : safeRoutes.values()){
+            Coordinate wayPointCoord = sR.findWayPointInRange(origin, destination);
+            if(wayPointCoord != null){
+                wayPoints.add(Point.fromLngLat(wayPointCoord.getLongitude(), wayPointCoord.getLatitude()));
+            }
+        }
+
         NavigationRoute.Builder builder = NavigationRoute.builder(this)
-        .accessToken(Mapbox.getAccessToken())
+        .accessToken(getString(R.string.access_token))
         .origin(origin, bearing, DEVIATE_TOLERANCE)
-        .destination(destination);
-        builder.addApproaches("curb","curb");
-        builder.build()
-        .getRoute(new Callback<DirectionsResponse>() {
+        .destination(destination)
+        .profile(DirectionsCriteria.PROFILE_WALKING);
+
+        for(Point wayPoint : wayPoints){
+            builder.addWaypoint(wayPoint);
+        }
+        //builder.addApproaches("curb","curb","curb","curb");
+
+        Log.d("Number of wayPoints", " " + wayPoints.size());
+
+        builder.build().getRoute(new Callback<DirectionsResponse>() {
             @Override
             public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
                 // You can get the generic HTTP info about the response
@@ -235,6 +423,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     navigationMapRoute = new NavigationMapRoute(null, mapView, map, R.style.NavigationMapRoute);
                 }
                 navigationMapRoute.addRoute(currentRoute);
+                startButton.setEnabled(true);
+                startButton.setBackgroundResource(R.color.colorPrimary);
+                startButton.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.mapboxBlack));
             }
 
             @Override
@@ -245,12 +436,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    //Database related methods
-    private void addRoute(){
-        String name;
-        double longitude;
-        double latitude;
-
+    private void routeCleanup(){
+        if(destinationMarker != null){
+            map.removeMarker(destinationMarker);
+            wayPoints.clear();
+        }
+        if (navigationMapRoute != null) {
+            navigationMapRoute.removeRoute();
+        }
+        startButton.setEnabled(false);
+        startButton.setBackgroundResource(R.color.mapboxGreyLight);
+        startButton.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
     }
 
     @SuppressWarnings("MissingPermission")
@@ -269,12 +465,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @SuppressWarnings("MissingPermission")
     @Override
-    protected void onStart(){
+    protected void onStart() {
         super.onStart();
-        if(locationEngine!=null){
+        if (locationEngine != null) {
             locationEngine.removeLocationUpdates();
         }
-        if(locationLayerPlugin!= null){
+        if (locationLayerPlugin != null) {
             locationLayerPlugin.onStart();
         }
         mapView.onStart();
