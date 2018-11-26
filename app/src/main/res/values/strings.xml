@@ -4,4 +4,6 @@
     <string name="news">News</string>
     <string name="contact">Contact</string>
     <string name="access_token">pk.eyJ1IjoiaHN5dXRpbmciLCJhIjoiY2pueXVoejc1MmZwZjNrbW8wYXc5aWRvaiJ9.7WWkn4jRW3YrIIrCo9GMwg</string>
+    <string name="back">Back</string>
+    <string name="originalLink">Original Link</string>
 </resources>

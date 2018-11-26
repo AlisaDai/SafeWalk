@@ -1,122 +1,80 @@
 package ca.bcit.project.safewalk;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class News implements Serializable {
-    private String type;
-    private int year;
-    private int month;
-    private int day;
-    private String hour;
-    private String minute;
-    private String Block;
-    private String Neighbourhood;
-    private float x;
-    private float y;
+    private String sourceName;
+    private String siteUrl;
+    private String author;
+    private String title;
+    private String url;
+    private Date publicshedAt;
+    private String content;
 
-    public  News(){
-        type = "Unknow";
-        year = 2018;
-        month = 1;
-        day = 1;
-        hour = "00";
-        minute = "00";
-        Block = "";
-        Neighbourhood = "";
-        x = 0;
-        y = 0;
+    public News(String sourceName, String siteUrl, String author, String title, String url, Date publicshedAt, String content) {
+        this.sourceName = sourceName;
+        this.siteUrl = siteUrl;
+        this.author = author;
+        this.title = title;
+        this.url = url;
+        this.publicshedAt = publicshedAt;
+        this.content = content;
     }
 
-    public News(String type, int year, int month, int day, String hour, String minute, String block, String neighbourhood, float x, float y) {
-        this.type = type;
-        this.year = year;
-        this.month = month;
-        this.day = day;
-        this.hour = hour;
-        this.minute = minute;
-        Block = block;
-        Neighbourhood = neighbourhood;
-        this.x = x;
-        this.y = y;
+    public String getSourceName() {
+        return sourceName;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setSourceName(String sourceName) {
+        this.sourceName = sourceName;
     }
 
-    public void setYear(int year) {
-        this.year = year;
+    public String getSiteUrl() {
+        return siteUrl;
     }
 
-    public void setMonth(int month) {
-        this.month = month;
+    public void setSiteUrl(String siteUrl) {
+        this.siteUrl = siteUrl;
     }
 
-    public void setDay(int day) {
-        this.day = day;
+    public String getAuthor() {
+        return author;
     }
 
-    public void setHour(String hour) {
-        this.hour = hour;
+    public void setAuthor(String author) {
+        this.author = author;
     }
 
-    public void setMinute(String minute) {
-        this.minute = minute;
+    public String getTitle() {
+        return title;
     }
 
-    public void setBlock(String block) {
-        Block = block;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
-    public void setNeighbourhood(String neighbourhood) {
-        Neighbourhood = neighbourhood;
+    public String getUrl() {
+        return url;
     }
 
-    public void setX(float x) {
-        this.x = x;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
-    public void setY(float y) {
-        this.y = y;
+    public Date getPublicshedAt() {
+        return publicshedAt;
     }
 
-    public String getType() {
-        return type;
+    public void setPublicshedAt(Date publicshedAt) {
+        this.publicshedAt = publicshedAt;
     }
 
-    public int getYear() {
-        return year;
+    public String getContent() {
+        return content;
     }
 
-    public int getMonth() {
-        return month;
-    }
-
-    public int getDay() {
-        return day;
-    }
-
-    public String getHour() {
-        return hour;
-    }
-
-    public String getMinute() {
-        return minute;
-    }
-
-    public String getBlock() {
-        return Block;
-    }
-
-    public String getNeighbourhood() {
-        return Neighbourhood;
-    }
-
-    public float getX() {
-        return x;
-    }
-
-    public float getY() {
-        return y;
+    public void setContent(String content) {
+        this.content = content;
     }
 }

@@ -51,7 +51,7 @@ public class ContactActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu. This adds items to the app bar.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_back, menu);
 
         return true;
     }
@@ -59,15 +59,8 @@ public class ContactActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_map:
-                //Toast.makeText(this, "Map", Toast.LENGTH_SHORT).show();
-                //Intent j = new Intent(this, ContactActivity.class);
-                startActivity(new Intent(this, MainActivity.class));
-                return true;
-            case R.id.action_news:
-                //Toast.makeText(this, "News", Toast.LENGTH_SHORT).show();
-                //Intent i = new Intent(this, NewsActivity.class);
-                startActivity(new Intent(this, NewsActivity.class));
+            case R.id.action_back:
+                finish();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

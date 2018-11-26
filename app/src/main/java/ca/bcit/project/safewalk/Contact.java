@@ -7,8 +7,9 @@ public class Contact {
 
     public static final Contact[] phoneCall = {
             new Contact("EMERGENCY", "POLICE（EMERGENCY）", "911"),
+            new Contact("EMERGENCY", "Hospital(Royal Columbian Hospital)", " 6045204253"),
             new Contact("NON-EMERGENCY", "POLICE（NON-EMERGENCY）", "6045255411"),
-            new Contact("NON-EMERGENCY", "Test Number", "7788899463"),
+            new Contact("NON-EMERGENCY", "Taxi (Bel-Air Taxi)", "6044336666"),
     };
 
     public Contact(String type, String name, String phoneNumber) {
