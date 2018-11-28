@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     //local data structure variables after reading from firebase
     private Map<String, SafeRoute> safeRoutes;
     private ArrayList<Point> wayPoints;
+    private boolean ready = false;
 
     private static final String TAG = "MainActivity";
     private static final boolean SIMULATE_ROUTE = true;         //simulate movement towards destination. used for testing
@@ -248,6 +249,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         locationLayerPlugin.setLocationLayerEnabled(true);
         locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
         locationLayerPlugin.setRenderMode(RenderMode.COMPASS);
+        loadingPanel.setVisibility(View.GONE);
+        loadingValue.setText(getString(R.string.loading));
+        ready = true;
     }
 
     private void setCameraPosition(Location location){
@@ -256,20 +260,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapClick(@NonNull LatLng point) {
-        routeCleanup();
-        LatLng originLatLng = new LatLng(originLocation.getLatitude(), originLocation.getLongitude());
-        destinationMarker = map.addMarker(new MarkerOptions().position(point));
+        if(ready) {
+            routeCleanup();
+            LatLng originLatLng = new LatLng(originLocation.getLatitude(), originLocation.getLongitude());
+            destinationMarker = map.addMarker(new MarkerOptions().position(point));
 
-        //move the camera to focus on start and end points
-        LatLngBounds latLngBounds = new LatLngBounds.Builder()
-                .include(originLatLng)
-                .include(point)
-                .build();
-        map.easeCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 400), 250);
+            //move the camera to focus on start and end points
+            LatLngBounds latLngBounds = new LatLngBounds.Builder()
+                    .include(originLatLng)
+                    .include(point)
+                    .build();
+            map.easeCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 400), 250);
 
-        destinationPosition = Point.fromLngLat(point.getLongitude(), point.getLatitude());
-        originPosition = Point.fromLngLat(originLocation.getLongitude(), originLocation.getLatitude());
-        getRoute(originPosition,destinationPosition);
+            destinationPosition = Point.fromLngLat(point.getLongitude(), point.getLatitude());
+            originPosition = Point.fromLngLat(originLocation.getLongitude(), originLocation.getLatitude());
+            getRoute(originPosition, destinationPosition);
+        }
     }
 
     private void getRoute(Point origin, Point destination){
@@ -467,8 +473,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         @Override
         protected void onPostExecute(Map<String, SafeRoute> results) {
             safeRoutes = results;
-            loadingPanel.setVisibility(View.GONE);
-            loadingValue.setText(getString(R.string.loading));
         }
 
         //check and add safe route into map of safe routes
