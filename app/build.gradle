@@ -41,6 +41,7 @@ dependencies {
     implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-places:0.6.0'
     implementation 'com.mapbox.mapboxsdk:mapbox-android-navigation-ui:0.23.0'
     implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-places:0.7.0-SNAPSHOT'
+    implementation "com.google.android.gms:play-services-location:15.0.1"
     //Firebase dependencies
     implementation 'com.google.firebase:firebase-core:16.0.5'
 }

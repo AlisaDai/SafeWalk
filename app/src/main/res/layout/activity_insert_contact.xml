@@ -36,7 +36,7 @@
         android:gravity="center_horizontal">
         <TextView
             android:id="@+id/phoneLabel"
-            android:text="@string/name"/>
+            android:text="@string/phoneNumber"/>
 
         <EditText
             android:id="@+id/phone"

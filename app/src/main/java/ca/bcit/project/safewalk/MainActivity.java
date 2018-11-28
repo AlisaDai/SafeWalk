@@ -138,10 +138,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_map:
-                finish();
-                startActivity(new Intent(this, MainActivity.class));
-                return true;
+//            case R.id.action_map:
+//                finish();
+//                startActivity(new Intent(this, MainActivity.class));
+//                return true;
             case R.id.action_news:
                 //Toast.makeText(this, "News", Toast.LENGTH_SHORT).show();
                 //Intent i = new Intent(this, NewsActivity.class);
@@ -274,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void getRoute(Point origin, Point destination){
 
-        double bearing = Float.valueOf(originLocation.getBearing()).doubleValue();
+        //double bearing = Float.valueOf(originLocation.getBearing()).doubleValue();
 
         for(SafeRoute sR : safeRoutes.values()){
             Coordinate wayPointCoord = sR.findWayPointInRange(origin, destination);
@@ -285,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         NavigationRoute.Builder builder = NavigationRoute.builder(this)
                 .accessToken(getString(R.string.access_token))
-                .origin(origin, bearing, DEVIATE_TOLERANCE)
+                .origin(origin) // could add these 2 params: bearing, DEVIATE_TOLERANCE
                 .destination(destination)
                 .profile(DirectionsCriteria.PROFILE_WALKING);
 
@@ -340,7 +340,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         startButton.setEnabled(false);
         startButton.setBackgroundResource(R.color.mapboxGreyLight);
-        startButton.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
+        startButton.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.mapboxWhite));
     }
 
     @SuppressWarnings("MissingPermission")
