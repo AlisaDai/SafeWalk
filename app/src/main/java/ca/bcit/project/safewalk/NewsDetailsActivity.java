@@ -1,14 +1,22 @@
 package ca.bcit.project.safewalk;
 
+import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.ahmadrosid.svgloader.SvgLoader;
+
+import java.io.InputStream;
+import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,10 +36,11 @@ public class NewsDetailsActivity extends AppCompatActivity {
         tv.setText(currentNews.getTitle());
         addLink(tv, currentNews.getTitle(), currentNews.getUrl());
         tv = findViewById(R.id.author);
-        tv.setText("By: " + currentNews.getAuthor() + "\nAt: " + currentNews.getPublicshedAt());
+        tv.setText("By: " + currentNews.getAuthor() + "\nAt: " + new SimpleDateFormat("EEEE, MMM dd, yyyy\tHH:mm:ss a").format(currentNews.getPublicshedAt()));
         tv = findViewById(R.id.site);
-        tv.setText("On @" + currentNews.getSourceName());
-        addLink(tv, currentNews.getSourceName(),  currentNews.getSiteUrl());
+        tv.setText(currentNews.getSiteUrl());
+        //addLink(tv, currentNews.getSourceName(),  currentNews.getSiteUrl());
+        Log.d("MyMessage","site link is " + currentNews.getSiteUrl());
         tv.setMovementMethod(LinkMovementMethod.getInstance());
         tv.setLinksClickable(true);
         tv = findViewById(R.id.content);

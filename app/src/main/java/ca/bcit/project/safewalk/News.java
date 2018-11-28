@@ -10,15 +10,17 @@ public class News implements Serializable {
     private String title;
     private String url;
     private Date publicshedAt;
+    private String imageUrl;
     private String content;
 
-    public News(String sourceName, String siteUrl, String author, String title, String url, Date publicshedAt, String content) {
+    public News(String sourceName, String siteUrl, String author, String title, String url, Date publicshedAt, String imageUrl, String content) {
         this.sourceName = sourceName;
         this.siteUrl = siteUrl;
         this.author = author;
         this.title = title;
         this.url = url;
         this.publicshedAt = publicshedAt;
+        this.imageUrl = imageUrl;
         this.content = content;
     }
 
@@ -68,6 +70,14 @@ public class News implements Serializable {
 
     public void setPublicshedAt(Date publicshedAt) {
         this.publicshedAt = publicshedAt;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public String getContent() {

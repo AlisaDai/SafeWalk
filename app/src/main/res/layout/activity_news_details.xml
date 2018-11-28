@@ -31,10 +31,21 @@
                 android:layout_height="wrap_content"
                 android:textSize="17sp" />
 
-            <TextView
-                android:id="@+id/site"
+            <RelativeLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/siteLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/labelForSite"/>
+                <TextView
+                    android:id="@+id/site"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@+id/siteLabel"
+                    android:autoLink="web" />
+            </RelativeLayout>
 
             <TextView
                 android:id="@+id/content"

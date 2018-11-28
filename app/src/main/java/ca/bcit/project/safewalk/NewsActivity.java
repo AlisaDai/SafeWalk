@@ -81,9 +81,9 @@ public class NewsActivity extends AppCompatActivity {
                 "q=New&nbsp;Westminster&" +
                 "from=2018-10-23" + //dateString +
                 "&apiKey=71894e74c1024cf9a765fae7380ca40e";*/
-        Log.d("MyMessage", dataUrl);
+        //Log.d("MyMessage", dataUrl);
         jsonString = httpHandler.makeServiceCall(dataUrl);
-        Log.d("MyMessage",jsonString);
+        //Log.d("MyMessage",jsonString);
         newsArray = new ArrayList<>();
 
         if (jsonString != null) {
@@ -107,23 +107,27 @@ public class NewsActivity extends AppCompatActivity {
 
 
     private void addNews(JSONObject jsonObject) throws JSONException {
-        String siteName = new JSONObject(jsonObject.getString("thread")).getString("site");
-        String siteUrl = new JSONObject(jsonObject.getString("thread")).getString("site_section");
+        String siteName = new JSONObject(jsonObject.getString("thread")).getString("section_title");
+        String siteUrl = new JSONObject(jsonObject.getString("thread")).getString("site_full");
+        String imageUrl = new JSONObject(jsonObject.getString("thread")).getString("main_image");
+        //Log.d("MyMessage", "siteUrl: " + siteUrl);
         String url = jsonObject.getString("url");
+        //Log.d("MyMessage", "url: " + url);
         String author = jsonObject.getString("author");
         String dateString = jsonObject.getString("published");
-        Log.d("MyMessage", "published " + dateString);
+        //Log.d("MyMessage", "published " + dateString);
         String title = jsonObject.getString("title");
         String content = jsonObject.getString("text");
-        DateFormat fmt =new SimpleDateFormat("yyyy-MM-dd HH:MM:SS");
+        DateFormat fmt =new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.000+02:00'");
         Date date = new Date();
         try {
             date = fmt.parse(dateString);
+            //Log.d("MyMessage","date of dateString" + date.toString());
         } catch (ParseException e) {
             e.printStackTrace();
         }
         Date publishedAt = date;
-        Log.d("MyMessage", "publishedAt " + publishedAt.toString());
+        //Log.d("MyMessage", "publishedAt " + publishedAt.toString());
 
         newsArray.add(new News (
                 siteName,
@@ -132,6 +136,7 @@ public class NewsActivity extends AppCompatActivity {
                 title,
                 url,
                 publishedAt,
+                imageUrl,
                 content
         ));
         titles.add(title);

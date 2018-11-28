@@ -2,10 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <item android:id="@+id/plus"
+        android:title="@string/plus"
+        android:icon="@drawable/plus_icon"
+        app:showAsAction="collapseActionView|ifRoom" />
+
     <item android:id="@+id/action_back"
         android:title="@string/back"
         android:icon="@drawable/back_icon"
-        android:orderInCategory="1"
         app:showAsAction="collapseActionView|ifRoom" />
 
 </menu>

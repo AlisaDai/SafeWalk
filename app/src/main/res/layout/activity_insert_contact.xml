@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical"
+    tools:context=".InsertContactActivity">
+
+    <TableRow
+        android:gravity="center_horizontal">
+        <TextView
+            android:id="@+id/nameLabel"
+            android:text="@string/name"/>
+
+        <EditText
+            android:id="@+id/name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName" />
+    </TableRow>
+    <TableRow
+        android:gravity="center_horizontal">
+        <TextView
+            android:id="@+id/typeLabel"
+            android:text="@string/type"/>
+
+
+        <Spinner
+            android:id="@+id/type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName" />
+    </TableRow>
+    <TableRow
+        android:gravity="center_horizontal">
+        <TextView
+            android:id="@+id/phoneLabel"
+            android:text="@string/name"/>
+
+        <EditText
+            android:id="@+id/phone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="phone" />
+    </TableRow>
+    <TableRow
+        android:gravity="center_horizontal">
+        <Button
+            android:id="@+id/save"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/save" />
+
+        <Button
+            android:id="@+id/cancel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel" />
+    </TableRow>
+</TableLayout>
