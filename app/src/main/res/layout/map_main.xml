@@ -8,6 +8,7 @@
     android:layout_height="wrap_content"
     mapbox:mapbox_cameraTargetLat="49.205014118803064"
     mapbox:mapbox_cameraTargetLng="-122.91642947805181"
-    mapbox:mapbox_styleUrl="mapbox://styles/hsyuting/cjoybi3rh5qou2rn4ciqh59kr"
+    mapbox:mapbox_styleUrl="mapbox://styles/mapbox/streets-v10"
     mapbox:mapbox_cameraZoom="12"
+    mapbox:mapbox_renderTextureMode="true"
     />

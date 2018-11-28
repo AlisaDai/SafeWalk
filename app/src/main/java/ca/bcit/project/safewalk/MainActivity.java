@@ -18,11 +18,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineListener;
 import com.mapbox.android.core.location.LocationEnginePriority;
@@ -39,7 +41,6 @@ import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
-import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -61,12 +62,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, LocationEngineListener, PermissionsListener, MapboxMap.OnMapClickListener{
+public class MainActivity extends AppCompatActivity implements LocationEngineListener, PermissionsListener, MapboxMap.OnMapClickListener {
 
     //App variables
     private PermissionsManager permissionManager;
@@ -119,7 +119,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(this);
+        mapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(MapboxMap mapboxMap) {
+                map =  mapboxMap;
+                map.addOnMapClickListener(MainActivity.this);
+                initSearchFab();
+                enableLocation();
+
+                //Add symbol layer icon to map for future use
+//        Bitmap icon = BitmapFactory.decodeResource(
+//                MainActivity.this.getResources(), R.drawable.ic_action_search);
+//        map.addImage(symbolIconId, icon);
+
+                // Create an empty GeoJSON source using the empty feature collection
+                //setUpSource();
+
+                // Set up a new symbol layer for displaying the searched location's feature coordinates
+                //setupLayer();
+            }
+        });
+
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -223,25 +243,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    @Override
-    public void onMapReady(MapboxMap mapboxMap) {
-        map =  mapboxMap;
-        map.addOnMapClickListener(this);
-        initSearchFab();
-        enableLocation();
-
-        //Add symbol layer icon to map for future use
-//        Bitmap icon = BitmapFactory.decodeResource(
-//                MainActivity.this.getResources(), R.drawable.ic_action_search);
-//        map.addImage(symbolIconId, icon);
-
-        // Create an empty GeoJSON source using the empty feature collection
-        //setUpSource();
-
-        // Set up a new symbol layer for displaying the searched location's feature coordinates
-        //setupLayer();
     }
 
     private void initSearchFab(){
@@ -388,10 +389,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 wayPoints.add(Point.fromLngLat(wayPointCoord.getLongitude(), wayPointCoord.getLatitude()));
             }
         }
-
+        //, bearing, DEVIATE_TOLERANCE
         NavigationRoute.Builder builder = NavigationRoute.builder(this)
         .accessToken(getString(R.string.access_token))
-        .origin(origin, bearing, DEVIATE_TOLERANCE)
+        .origin(origin)
         .destination(destination)
         .profile(DirectionsCriteria.PROFILE_WALKING);
 
@@ -523,5 +524,4 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         mapView.onDestroy();
     }
-
 }
