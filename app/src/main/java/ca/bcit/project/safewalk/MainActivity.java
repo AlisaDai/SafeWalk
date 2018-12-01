@@ -80,6 +80,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationEngine locationEngine;
     private LocationLayerPlugin locationLayerPlugin;
     private Location originLocation;
+    //private MapboxOptimization optimizedClient;  2.optimization version excluded
+    //private MapboxMapMatching matcher;  3.map matching version commented out
     private Point originPosition;
     private Point destinationPosition;
     private Marker destinationMarker;
@@ -94,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final String TAG = "MainActivity";
     private static final boolean SIMULATE_ROUTE = true;         //simulate movement towards destination. used for testing
-    private static final double DEVIATE_TOLERANCE = 30d;        //30 degree tolerance in off route detection
+    //private static final double DEVIATE_TOLERANCE = 30d; excluded//30 degree tolerance in off route detection
     private static final int CALL_REQUEST_CODE = 101;           //Permission for call
     private static final int REQUEST_CODE_AUTOCOMPLETE = 1;
 
@@ -214,7 +216,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
         //Present reasons for permissions
-
     }
 
     @Override
@@ -265,6 +266,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             LatLng originLatLng = new LatLng(originLocation.getLatitude(), originLocation.getLongitude());
             destinationMarker = map.addMarker(new MarkerOptions().position(point));
 
+            //Bound camera within start and end point so it's clearer for user to see
             //move the camera to focus on start and end points
             LatLngBounds latLngBounds = new LatLngBounds.Builder()
                     .include(originLatLng)
@@ -278,30 +280,44 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    // May show more than one route when routing, but nagivates the shortest one when you start navigation
+    // If not using map matching version. Results would improve if dataset improves
+    // Three ways to approach:
+    //  1. Basic version (add waypoints)
+    //  2. Optimized version    (optimization client with navigation route)
+    //  3. Safety > Optimized version (advanced map matching: map matching -> optimization -> navigation route)
+    // You can only use one of the three as main calling for building route
+    // Map matching, Navigation route or optimization client.
+    // Current version: Basic
     private void getRoute(Point origin, Point destination){
 
-        //double bearing = Float.valueOf(originLocation.getBearing()).doubleValue();
+        //double bearing = Float.valueOf(originLocation.getBearing()).doubleValue(); excluded
+        //wayPoints.add(origin); map matching version
 
+        //1. Basic version: Find safe waypoints to add for routing purpose
         for(SafeRoute sR : safeRoutes.values()){
-            Coordinate wayPointCoord = sR.findWayPointInRange(origin, destination);
+            Coordinate wayPointCoord = sR.findWayPointInRange(origin, destination); //basic version/ optimize version
+            //wayPoints.addAll(sR.findAllPointsInRange(origin,destination)); map matching version
             if(wayPointCoord != null){
                 wayPoints.add(Point.fromLngLat(wayPointCoord.getLongitude(), wayPointCoord.getLatitude()));
             }
         }
 
+        //Navigation builder for building routes
         NavigationRoute.Builder builder = NavigationRoute.builder(this)
                 .accessToken(getString(R.string.access_token))
                 .origin(origin) // could add these 2 params: bearing, DEVIATE_TOLERANCE
                 .destination(destination)
                 .profile(DirectionsCriteria.PROFILE_WALKING);
 
+        //Before build add safe waypoints
         for(Point wayPoint : wayPoints){
             builder.addWaypoint(wayPoint);
         }
-        //builder.addApproaches("curb","curb","curb","curb");
+        //builder.addApproaches("curb","curb","curb","curb"); this line decides which side of road should user be at
+        //Log.d("Number of wayPoints", " " + wayPoints.size());
 
-        Log.d("Number of wayPoints", " " + wayPoints.size());
-
+        //API function call for getting route and display
         builder.build().getRoute(new Callback<DirectionsResponse>() {
             @Override
             public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
@@ -323,6 +339,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     navigationMapRoute = new NavigationMapRoute(null, mapView, map, R.style.NavigationMapRoute);
                 }
                 navigationMapRoute.addRoute(currentRoute);
+                //UI button change here
                 startButton.setEnabled(true);
                 startButton.setBackgroundResource(R.color.colorPrimary);
                 startButton.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.mapboxBlack));
@@ -333,9 +350,59 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.e(TAG, "Error:" + t.getMessage());
             }
         });
+
+        //2. Optimization version excluded: code upon request
+
+        //wayPoints.add(destination); use only when using map matching version
+
+        //3. Map matching version: if use need navigation vairable and comment part of 1.basic version
+//        matcher.builder()
+//        .accessToken(getString(R.string.access_token))
+//        .coordinates(wayPoints)   //need to be within bounding box and
+//        .steps(true)
+//        .voiceInstructions(true)
+//        .bannerInstructions(true)
+//        .profile(DirectionsCriteria.PROFILE_WALKING)
+//        .build()
+//        .enqueueCall(new Callback<MapMatchingResponse>() {
+//
+//        @Override
+//        public void onResponse(Call<MapMatchingResponse> call, Response<MapMatchingResponse> response) {
+//            if (response.isSuccessful()) {
+//                currentRoute = response.body().matchings().get(0).toDirectionRoute(); current route before optimization
+//            }
+//            else{
+//                Log.e(TAG, "No route matched.");
+//            }
+//
+//             if (navigationMapRoute != null) {
+//                    navigationMapRoute.removeRoute();
+//                } else {
+//                    navigationMapRoute = new NavigationMapRoute(null, mapView, map, R.style.NavigationMapRoute);
+//                }
+//
+//            navigationMapRoute.addRoute(currentRoute);
+//                startButton.setEnabled(true);
+//                startButton.setBackgroundResource(R.color.colorPrimary);
+//                startButton.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.mapboxBlack));
+//        }
+//
+//        @Override
+//        public void onFailure(Call<MapMatchingResponse> call, Throwable t) {
+//            Log.e(TAG, "Map Matching Error:" + t.getMessage());
+//        }
+//        });
+//        navigation.addOffRouteListener(new OffRouteListener() {
+//        @Override
+//        public void userOffRoute(Location location) {
+//        // Make the Map Matching request here
+//        // Call MapboxNavigation.startNavigation if you want to start navigation here
+//        }
+//        });
+
     }
 
-
+    //Cleanup for route
     private void routeCleanup(){
         if(destinationMarker != null){
             map.removeMarker(destinationMarker);
@@ -425,6 +492,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapView.onDestroy();
     }
 
+    //Async task for loading Saferoutes data from Firebase. Currently set to Read ONLY permission
     private class FireBaseHelper extends AsyncTask<Void, Integer, Map<String, SafeRoute>> {
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();

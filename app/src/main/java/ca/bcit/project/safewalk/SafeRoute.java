@@ -1,7 +1,6 @@
 package ca.bcit.project.safewalk;
 
 import com.mapbox.geojson.Point;
-
 import java.util.ArrayList;
 
 public class SafeRoute {
@@ -19,17 +18,11 @@ public class SafeRoute {
     public String getName(){return name;}
     public ArrayList<Coordinate> getRoute(){return route;}
     public void setName(String name){this.name = name;}
-
-    //first testing for reading routes from database
-//    @Override
-//    public String toString(){
-//
-//        return name + " " + latitude + " " + longitude;
-//    }
     public void addCoordinate(double lon, double lat){
         route.add(new Coordinate(lon, lat));
     }
 
+    //Method used for 1. Basic version & 2. Optimization of routing. Return optimal safe coordinate closest to midpoint.
     public Coordinate findWayPointInRange(Point origin, Point destination){
         double latLower = 0;
         double latUpper = 0;
@@ -67,6 +60,7 @@ public class SafeRoute {
         }
         return lowestCoordinate;
     }
+    // Method used for 3.map matching version
     public ArrayList<Point> findAllPointsInRange(Point origin, Point destination){
         double latLower = 0;
         double latUpper = 0;
